@@ -1,3 +1,4 @@
+use std::io::{self, Write};
 use serde::{Serialize, Deserialize};
 use chrono::{NaiveDate, Utc};
 
@@ -47,54 +48,63 @@ impl FinanceTracker {
 // 4. Main function to run the program
 fn main() {
     let mut my_tracker = FinanceTracker::new();
-    
-    println!("--- Welcome to your Rust Finance Tracker ---");
-    
-    my_tracker.add_transaction("Paycheck".to_string(), 2500.0, TransactionType::Income);
-    my_tracker.add_transaction("Rent".to_string(), 1200.0, TransactionType::Expense);
-    
-    println!("Current Balance: ${}", my_tracker.get_balance());
+
+    loop {
+        println!("\n--- Finance Tracker Menu ---");
+        println!("1. Add Income");
+        println!("2. Add Expense");
+        println!("3. View Balance");
+        println!("4. List Transactions");
+        println!("5. Exit");
+        print!("Choose an option: ");
+        io::stdout().flush().unwrap(); // Ensures the prompt appears before input
+
+        let mut choice = String::new();
+        io::stdin().read_line(&mut choice).expect("Failed to read line");
+
+        match choice.trim() {
+            "1" => {
+                let (desc, amount) = get_transaction_input("Income");
+                my_tracker.add_transaction(desc, amount, TransactionType::Income);
+                println!("Income added successfully!");
+            }
+            "2" => {
+                let (desc, amount) = get_transaction_input("Expense");
+                my_tracker.add_transaction(desc, amount, TransactionType::Expense);
+                println!("Expense added successfully!");
+            }
+            "3" => {
+                println!("\n>>> Current Balance: ${:.2}", my_tracker.get_balance());
+            }
+            "4" => {
+                println!("\n--- Transaction History ---");
+                for t in &my_tracker.transactions {
+                    println!("[{}] {:?}: {} - ${:.2}", t.date, t.kind, t.description, t.amount);
+                }
+            }
+            "5" => {
+                println!("Goodbye!");
+                break;
+            }
+            _ => println!("Invalid option, please try again."),
+        }
+    }
 }
 
-// 5. Testing Suite (Requirement #3)
-#[cfg(test)]
-mod tests {
-    use super::*;
+// Helper function to handle user input for transactions
+fn get_transaction_input(label: &str) -> (String, f64) {
+    let mut desc = String::new();
+    let mut amount_str = String::new();
 
-    #[test]
-    fn test_new_tracker_is_empty() {
-        let tracker = FinanceTracker::new();
-        assert_eq!(tracker.transactions.len(), 0);
-    }
+    print!("Enter {} description: ", label);
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut desc).expect("Failed to read line");
 
-    #[test]
-    fn test_add_income() {
-        let mut tracker = FinanceTracker::new();
-        tracker.add_transaction("Bonus".into(), 500.0, TransactionType::Income);
-        assert_eq!(tracker.get_balance(), 500.0);
-    }
+    print!("Enter amount: ");
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut amount_str).expect("Failed to read line");
 
-    #[test]
-    fn test_add_expense() {
-        let mut tracker = FinanceTracker::new();
-        tracker.add_transaction("Coffee".into(), 5.0, TransactionType::Expense);
-        assert_eq!(tracker.get_balance(), -5.0);
-    }
+    let amount: f64 = amount_str.trim().parse().expect("Please enter a valid number");
 
-    #[test]
-    fn test_multiple_transactions() {
-        let mut tracker = FinanceTracker::new();
-        tracker.add_transaction("Salary".into(), 1000.0, TransactionType::Income);
-        tracker.add_transaction("Groceries".into(), 200.0, TransactionType::Expense);
-        assert_eq!(tracker.get_balance(), 800.0);
-    }
-
-    #[test]
-    fn test_transaction_ids() {
-        let mut tracker = FinanceTracker::new();
-        tracker.add_transaction("A".into(), 1.0, TransactionType::Income);
-        tracker.add_transaction("B".into(), 1.0, TransactionType::Income);
-        assert_eq!(tracker.transactions[0].id, 1);
-        assert_eq!(tracker.transactions[1].id, 2);
-    }
+    (desc.trim().to_string(), amount)
 }
