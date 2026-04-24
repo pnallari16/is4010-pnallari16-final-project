@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "id": 1,
+    "date": "2026-04-23",
+    "description": "Monthly Salary",
+    "amount": 3500.0,
+    "kind": "Income"
+  },
+  {
+    "id": 2,
+    "date": "2026-04-23",
+    "description": "Electric Bill",
+    "amount": 120.5,
+    "kind": "Expense"
+  }
+]
